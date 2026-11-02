@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora de Preço — Shopee, TikTok Shop e Mercado Livre</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f4f1; --card:#fff; --ink:#1d1b19; --muted:#6c665f; --line:#e6e1da;
+    --accent:#e8542e; --accent-soft:#fdeee8;
+    --good:#1f8a52; --good-soft:#e6f4ec; --bad:#c0352b; --bad-soft:#fbe9e7; --warn:#a36a00; --warn-soft:#fff4dc;
+  }
+  body[data-p="tiktok"]{ --accent:#1c1c1c; --accent-soft:#ecebea; }
+  body[data-p="ml"]{ --accent:#2d55c8; --accent-soft:#e9eefb; }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#16140f; --card:#211e19; --ink:#f1ede7; --muted:#a59d93; --line:#38332c;
+      --accent:#ff7a52; --accent-soft:#3a2219; --good:#4cc283; --good-soft:#18301f;
+      --bad:#ff7b6e; --bad-soft:#3a1d1a; --warn:#f0b445; --warn-soft:#352a12; }
+    body[data-p="tiktok"]{ --accent:#e9e6e1; --accent-soft:#33302b; }
+    body[data-p="ml"]{ --accent:#7c9cff; --accent-soft:#1f2740; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;font-size:15px;line-height:1.45}
+  .wrap{max-width:1020px;margin:0 auto;padding:28px 18px 60px}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{color:var(--muted);margin:0 0 18px}
+  .ptabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+  .ptabs button{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:10px 16px;border-radius:999px;font:inherit;font-weight:600;cursor:pointer}
+  .ptabs button.on{background:var(--accent);border-color:var(--accent);color:var(--card)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  @media (max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 12px;font-weight:600}
+  .tabs{display:flex;background:var(--bg);border-radius:10px;padding:4px;margin-bottom:16px;gap:4px}
+  .tabs button{flex:1;border:0;background:transparent;padding:9px;border-radius:7px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+  .tabs button.on{background:var(--card);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  label{display:block;font-weight:500;margin:13px 0 6px}
+  label small{color:var(--muted);font-weight:400}
+  .field{display:flex;align-items:center;border:1px solid var(--line);border-radius:9px;background:var(--card);overflow:hidden}
+  .field:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .field span{padding:0 10px;color:var(--muted);font-size:14px}
+  .field input,.field select{flex:1;border:0;outline:0;padding:10px 10px 10px 0;font:inherit;background:transparent;color:var(--ink);min-width:0}
+  .field select{padding-left:10px}
+  .field.pct input{padding-left:10px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;vertical-align:middle}
+  label .seg{margin-left:6px}
+  .seg button{border:0;background:transparent;padding:5px 11px;font:inherit;font-size:13px;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--accent);color:var(--card)}
+  .check{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:14px;color:var(--muted);font-weight:400}
+  .check input{accent-color:var(--accent);width:16px;height:16px;margin-top:2px;flex:none}
+  .psec{margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+  details{margin-top:16px;border-top:1px dashed var(--line);padding-top:10px}
+  summary{cursor:pointer;font-weight:600;color:var(--muted);font-size:14px}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  .hero{background:var(--accent-soft);border-radius:12px;padding:18px;margin-bottom:16px}
+  .hero .lbl{padding-right:90px;font-size:13px;color:var(--muted);font-weight:500}
+  .hero .val{font-size:38px;font-weight:700;letter-spacing:-.02em;color:var(--accent);line-height:1.1;margin-top:2px}
+  .hero .meta{font-size:13px;color:var(--muted);margin-top:6px}
+  .copy{float:right;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:7px;padding:5px 10px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  td,th{padding:7px 0;border-bottom:1px solid var(--line);text-align:left}
+  td:last-child{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tr.neg td:last-child{color:var(--bad)}
+  tr.tot td{font-weight:700;border-bottom:0;padding-top:10px}
+  tr.sub td{color:var(--muted);font-size:13px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+  .kpi{border:1px solid var(--line);border-radius:10px;padding:10px}
+  .kpi .l{font-size:12px;color:var(--muted)}
+  .kpi .v{font-size:18px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+  .v.pos{color:var(--good)} .v.neg{color:var(--bad)}
+  .alert{border-radius:10px;padding:11px 13px;font-size:13.5px;margin-top:12px}
+  .alert.warn{background:var(--warn-soft);color:var(--warn)}
+  .alert.bad{background:var(--bad-soft);color:var(--bad)}
+  .alert.good{background:var(--good-soft);color:var(--good)}
+  .rules td{padding:6px 4px;font-size:13.5px}
+  .rules td:last-child{text-align:right}
+  .note{font-size:12.5px;color:var(--muted);margin-top:12px}
+  .cmp{margin-top:18px}
+  .cmp table th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em;padding:6px 6px}
+  .cmp table td{padding:10px 6px;text-align:right}
+  .cmp table td:first-child,.cmp table th:first-child{text-align:left}
+  .cmp table th{text-align:right}
+  .cmp tr.click{cursor:pointer}
+  .cmp tr.click:hover td{background:var(--bg)}
+  .cmp tr.cur td{font-weight:700}
+  .best{display:inline-block;font-size:11px;font-weight:700;background:var(--good-soft);color:var(--good);padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .foot{margin-top:22px;font-size:12.5px;color:var(--muted)}
+</style>
+</head>
+<body data-p="shopee">
+<div class="wrap">
+  <h1>Calculadora de Preço para Marketplaces</h1>
+  <p class="sub">Informe seus custos e o lucro que você quer. A calculadora acha o preço de anúncio já com as taxas de cada plataforma (valores de novembro/2026).</p>
+
+  <div class="ptabs" id="ptabs">
+    <button data-p="shopee" class="on">Shopee</button>
+    <button data-p="tiktok">TikTok Shop</button>
+    <button data-p="ml">Mercado Livre</button>
+  </div>
+
+  <div class="grid">
+    <!-- ENTRADAS -->
+    <div class="card">
+      <div class="tabs">
+        <button id="tabPrice" class="on">Descobrir preço de venda</button>
+        <button id="tabSim">Simular um preço</button>
+      </div>
+
+      <h2>Seus custos (por unidade)</h2>
+      <label>Custo do produto</label>
+      <div class="field"><span>R$</span><input id="custo" inputmode="decimal" value="25,00"></div>
+      <div class="row">
+        <div><label>Embalagem</label><div class="field"><span>R$</span><input id="emb" inputmode="decimal" value="1,50"></div></div>
+        <div><label>Etiqueta</label><div class="field"><span>R$</span><input id="etq" inputmode="decimal" value="0,30"></div></div>
+      </div>
+
+      <div id="boxLucro">
+        <label>Lucro desejado
+          <span class="seg" id="segLucro"><button data-m="rs" class="on">R$</button><button data-m="pct">% da venda</button></span>
+        </label>
+        <div class="field"><span id="lucroUnit">R$</span><input id="lucro" inputmode="decimal" value="10,00"></div>
+      </div>
+      <div id="boxSim" style="display:none">
+        <label>Preço de venda que você quer testar</label>
+        <div class="field"><span>R$</span><input id="precoSim" inputmode="decimal" value="59,90"></div>
+      </div>
+
+      <!-- SHOPEE -->
+      <div class="psec" data-only="shopee">
+        <h2>Configurações Shopee</h2>
+        <div class="seg" id="segConta"><button data-c="cnpj" class="on">CNPJ</button><button data-c="cpf">CPF</button></div>
+        <label class="check" id="boxCpf" style="display:none"><input type="checkbox" id="cpf450"> Mais de 450 pedidos nos últimos 90 dias (+R$ 3 por item)</label>
+        <label>Frete pago por você <small>(só com logística própria)</small></label>
+        <div class="field"><span>R$</span><input id="shFrete" inputmode="decimal" value="0,00"></div>
+      </div>
+
+      <!-- TIKTOK -->
+      <div class="psec" data-only="tiktok" style="display:none">
+        <h2>Configurações TikTok Shop</h2>
+        <label class="check"><input type="checkbox" id="ttFrete" checked> Participo do Programa de Taxas de Envio (6% sobre o preço, máx. R$ 50 por item). Novos vendedores entram automaticamente.</label>
+        <label>Comissão de afiliado/criador <small>(se vender por afiliados)</small></label>
+        <div class="field pct"><input id="ttAfil" inputmode="decimal" value="0"><span>%</span></div>
+        <label class="check"><input type="checkbox" id="ttIsento"> Estou nos 60 dias de isenção de comissão para novos vendedores</label>
+      </div>
+
+      <!-- MERCADO LIVRE -->
+      <div class="psec" data-only="ml" style="display:none">
+        <h2>Configurações Mercado Livre</h2>
+        <label>Tipo de anúncio</label>
+        <div class="seg" id="segAnuncio"><button data-a="classico" class="on">Clássico</button><button data-a="premium">Premium</button></div>
+        <label>Tarifa da sua categoria <small id="tarifaHint">(Clássico: 10% a 14%)</small></label>
+        <div class="field pct"><input id="mlTarifa" inputmode="decimal" value="12"><span>%</span></div>
+        <div class="hint">Veja o percentual exato da sua categoria no Simulador de Custos do Mercado Livre.</div>
+
+        <label>Forma de envio</label>
+        <div class="field"><select id="mlLog">
+          <option value="me">Mercado Envios (Coleta, Agência ou Full)</option>
+          <option value="flex">Flex ou envio próprio</option>
+        </select></div>
+
+        <div id="mlBoxME">
+          <label>Peso do pacote <small>(peso real ou cúbico, o que for maior)</small></label>
+          <div class="field"><select id="mlPeso"></select></div>
+          <label>Reputação</label>
+          <div class="field"><select id="mlRep">
+            <option value="verde">Verde, MercadoLíder ou sem reputação</option>
+            <option value="manual">Amarela, laranja ou vermelha (digitar o valor)</option>
+          </select></div>
+          <div id="mlBoxManual" style="display:none">
+            <label>Custo de envio do Simulador do ML</label>
+            <div class="field"><span>R$</span><input id="mlEnvioManual" inputmode="decimal" value="15,00"></div>
+            <div class="hint">Com valor digitado, ele é usado em qualquer faixa de preço.</div>
+          </div>
+        </div>
+        <div id="mlBoxFlex" style="display:none">
+          <label>Quanto você paga na entrega <small>(motoboy, Correios…)</small></label>
+          <div class="field"><span>R$</span><input id="mlFlexFrete" inputmode="decimal" value="0,00"></div>
+          <div class="hint">Abaixo de R$ 79 o ML cobra um custo fixo por unidade; a partir de R$ 79 você precisa oferecer frete grátis.</div>
+        </div>
+      </div>
+
+      <details>
+        <summary>Outros custos (opcional, valem para todas)</summary>
+        <div class="row">
+          <div><label>Imposto <small>(MEI/Simples)</small></label><div class="field pct"><input id="imp" inputmode="decimal" value="0"><span>%</span></div></div>
+          <div><label>Anúncios pagos <small>(% da venda)</small></label><div class="field pct"><input id="ads" inputmode="decimal" value="0"><span>%</span></div></div>
+        </div>
+        <label>Outros custos por unidade <small>(brinde, fita, cupom da loja…)</small></label>
+        <div class="field"><span>R$</span><input id="outros" inputmode="decimal" value="0,00"></div>
+      </details>
+    </div>
+
+    <!-- RESULTADO -->
+    <div>
+      <div class="card">
+        <div class="hero">
+          <button class="copy" id="btnCopy">Copiar</button>
+          <div class="lbl" id="heroLbl">Preço para anunciar</div>
+          <div class="val" id="heroVal">—</div>
+          <div class="meta" id="heroMeta"></div>
+        </div>
+        <h2>Para onde vai o dinheiro</h2>
+        <table id="breakdown"></table>
+        <div class="kpis">
+          <div class="kpi"><div class="l">Você recebe</div><div class="v" id="kRecebe">—</div></div>
+          <div class="kpi"><div class="l">Lucro líquido</div><div class="v" id="kLucro">—</div></div>
+          <div class="kpi"><div class="l">Margem</div><div class="v" id="kMargem">—</div></div>
+        </div>
+        <div id="alerts"></div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h2 id="rulesTitle">Regras usadas</h2>
+        <div id="rules"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card cmp">
+    <h2 id="cmpTitle">Comparativo entre as plataformas</h2>
+    <table id="cmp"></table>
+    <p class="note">Cada plataforma usa as configurações da própria aba. Clique numa linha para abrir a plataforma.</p>
+  </div>
+
+  <p class="foot">Taxas levantadas em 01/11/2026 em páginas de vendedores que citam as centrais oficiais (Shopee: tabela de 01/10/2026; TikTok Shop: tabela de 15/07/2026; Mercado Livre: tabela de custos de envio para reputação verde). As plataformas mudam as taxas com frequência, então confira na sua central de vendedor antes de anunciar.</p>
+</div>
+
+<script>
+/* ===== utilitários ===== */
+const $ = id => document.getElementById(id);
+const num = id => { const v = parseFloat(String($(id).value).replace(/\s/g,'').replace(/\.(?=\d{3}(\D|$))/g,'').replace(',','.')); return isFinite(v) ? v : 0; };
+const brl = v => v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const pctf = v => (Math.round(v*1000)/10).toString().replace('.',',')+'%';
+const r2 = v => Math.round(v*100)/100;
+
+let plat = 'shopee', mode = 'price', lucroMode = 'rs', conta = 'cnpj', anuncio = 'classico';
+
+let CFG = {};
+function readCfg(){
+  CFG = {
+    cpf450: conta==='cpf' && $('cpf450').checked, shFrete: num('shFrete'),
+    ttIsento: $('ttIsento').checked, ttFrete: $('ttFrete').checked, ttAfil: num('ttAfil')/100,
+    mlTarifa: num('mlTarifa')/100, mlLog: $('mlLog').value, mlManual: $('mlRep').value==='manual',
+    mlEnvioManual: num('mlEnvioManual'), mlPeso: +$('mlPeso').value || 0, mlFlexFrete: num('mlFlexFrete'),
+  };
+}
+/* ===== SHOPEE ===== */
+const SH_BANDS = [
+  {max:79.99, pct:.20, fixa:4.50, nome:'até R$ 79,99'},
+  {max:99.99, pct:.14, fixa:16,   nome:'R$ 80 a 99,99'},
+  {max:199.99,pct:.14, fixa:20,   nome:'R$ 100 a 199,99'},
+  {max:Infinity,pct:.14,fixa:26,  nome:'R$ 200 ou mais'},
+];
+function shopeeFees(p){
+  const b = SH_BANDS.findIndex(x => p <= x.max + 1e-9);
+  const B = SH_BANDS[b];
+  const fixa = b===0 ? Math.min(B.fixa, p/2) : B.fixa;
+  const items = [
+    {l:`Comissão Shopee (${pctf(B.pct)})`, v:p*B.pct, plat:true},
+    {l:'Taxa fixa por item', v:fixa, plat:true},
+  ];
+  if (CFG.cpf450) items.push({l:'Adicional CPF (+450 pedidos)', v:3, plat:true});
+  const fr = CFG.shFrete; if (fr) items.push({l:'Frete pago por você', v:fr});
+  return {items, faixa:B.nome};
+}
+
+/* ===== TIKTOK ===== */
+function tiktokFees(p){
+  const low = p < 50;
+  const pct = low ? .10 : .06, fixa = low ? 4 : 6;
+  const isento = CFG.ttIsento;
+  const items = [
+    {l:`Comissão TikTok Shop (${pctf(pct)})${isento?' — isento':''}`, v: isento ? 0 : p*pct, plat:true},
+    {l:'Tarifa por item', v:fixa, plat:true},
+  ];
+  if (CFG.ttFrete) items.push({l:'Programa de Taxas de Envio (6%, máx. R$ 50)', v:Math.min(p*.06, 50), plat:true});
+  const af = CFG.ttAfil; if (af) items.push({l:`Comissão do afiliado (${pctf(af)})`, v:p*af});
+  return {items, faixa: low ? 'abaixo de R$ 50' : 'R$ 50 ou mais'};
+}
+
+/* ===== MERCADO LIVRE ===== */
+const ML_PRICE = [18.99, 48.99, 78.99, 99.99, 119.99, 149.99, 199.99, Infinity];
+const ML_PRICE_N = ['até R$ 18,99','R$ 19 a 48,99','R$ 49 a 78,99','R$ 79 a 99,99','R$ 100 a 119,99','R$ 120 a 149,99','R$ 150 a 199,99','R$ 200 ou mais'];
+const ML_SHIP = [
+  ['Até 0,3 kg',      [5.65,6.85,8.15,12.95,14.95,16.95,19.05,21.65]],
+  ['0,3 a 0,5 kg',    [5.95,6.95,8.25,13.85,16.15,18.15,20.45,23.25]],
+  ['0,5 a 1 kg',      [6.05,7.15,8.45,14.45,16.85,19.05,21.35,24.45]],
+  ['1 a 1,5 kg',      [6.15,7.35,8.65,14.75,17.15,19.45,21.75,25.45]],
+  ['1,5 a 2 kg',      [6.25,7.45,8.75,15.05,17.65,19.85,22.25,25.55]],
+  ['2 a 3 kg',        [6.35,8.65,9.15,16.45,19.15,21.65,24.35,27.05]],
+  ['3 a 4 kg',        [6.45,8.75,9.75,17.85,20.75,23.35,26.35,29.25]],
+  ['4 a 5 kg',        [6.55,8.85,10.25,19.75,22.85,26.05,29.25,32.45]],
+  ['5 a 6 kg',        [6.65,8.95,10.35,25.95,29.15,33.35,36.45,40.85]],
+  ['6 a 7 kg',        [6.75,9.05,10.45,27.55,31.65,36.75,40.85,45.25]],
+  ['7 a 8 kg',        [6.85,9.25,10.55,29.45,34.35,39.25,44.15,49.35]],
+  ['8 a 9 kg',        [6.95,9.35,10.65,30.25,35.25,40.35,45.35,50.75]],
+  ['9 a 10 kg',       [7.05,9.45,10.85,38.25,45.05,51.95,58.75,65.85]],
+  ['10 a 11 kg',      [7.05,9.65,11.05,41.65,48.55,55.45,62.35,69.35]],
+  ['11 a 13 kg',      [7.15,10.05,11.45,42.55,49.75,56.85,63.85,70.95]],
+  ['13 a 15 kg',      [7.25,10.25,11.65,45.55,52.95,60.55,68.15,75.65]],
+  ['15 a 17 kg',      [7.35,10.45,11.85,48.95,56.55,64.05,71.35,79.35]],
+  ['17 a 20 kg',      [7.45,10.65,12.05,55.15,64.35,73.55,82.75,91.95]],
+  ['20 a 25 kg',      [7.65,11.05,12.25,64.55,75.75,85.45,96.25,106.85]],
+  ['25 a 30 kg',      [7.75,11.25,12.45,66.45,76.05,86.25,97.15,107.85]],
+];
+function mlFees(p){
+  const t = CFG.mlTarifa;
+  const items = [{l:`Tarifa de venda ${anuncio==='premium'?'Premium':'Clássico'} (${pctf(t)})`, v:p*t, plat:true}];
+  const pb = ML_PRICE.findIndex(x => p <= x + 1e-9);
+  if (CFG.mlLog === 'me'){
+    let env;
+    if (CFG.mlManual) env = CFG.mlEnvioManual;
+    else env = ML_SHIP[CFG.mlPeso][1][pb];
+    if (p < 19) env = Math.min(env, p/2);
+    items.push({l:'Custo de envio (Mercado Envios)', v:env, plat:true});
+  } else {
+    if (p < 79){
+      const fixo = p < 12.5 ? p/2 : p < 29 ? 6.25 : p < 50 ? 6.50 : 6.75;
+      items.push({l:'Custo fixo por unidade (abaixo de R$ 79)', v:fixo, plat:true});
+    }
+    const fr = CFG.mlFlexFrete; if (fr) items.push({l:'Entrega paga por você', v:fr});
+  }
+  return {items, faixa: ML_PRICE_N[pb]};
+}
+
+const PLATS = {
+  shopee:{nome:'Shopee', fees:shopeeFees},
+  tiktok:{nome:'TikTok Shop', fees:tiktokFees},
+  ml:{nome:'Mercado Livre', fees:mlFees},
+};
+
+/* ===== motor ===== */
+function base(){
+  return { custo:num('custo'), op:num('emb')+num('etq'), outros:num('outros'), imp:num('imp')/100, ads:num('ads')/100, lucro:num('lucro') };
+}
+function evaluate(pk, p, I){
+  const f = PLATS[pk].fees(p);
+  const platTot = f.items.filter(i=>i.plat).reduce((s,i)=>s+i.v,0);
+  const otherTot = f.items.filter(i=>!i.plat).reduce((s,i)=>s+i.v,0);
+  const recebe = p - platTot;
+  const imposto = p*I.imp, ads = p*I.ads;
+  const lucro = recebe - otherTot - I.custo - I.op - I.outros - imposto - ads;
+  return {p, f, platTot, recebe, imposto, ads, lucro, margem: p>0 ? lucro/p : 0};
+}
+function target(p, I, lm){ return lm==='rs' ? I.lucro : (I.lucro/100)*p; }
+// menor preço (em centavos) que atinge a meta
+function solve(pk, I, lm=lucroMode){
+  const ok = c => { const p=c/100; return evaluate(pk,p,I).lucro >= target(p,I,lm) - 1e-6; };
+  for (let c=1; c<=40000; c++) if (ok(c)) return c/100;   // varre até R$ 400 centavo a centavo
+  let lo=40000, hi=100000000;                              // acima disso as taxas são lineares: busca binária
+  if (!ok(hi)) return null;
+  while (hi-lo>1){ const m=Math.floor((lo+hi)/2); if (ok(m)) hi=m; else lo=m; }
+  return hi/100;
+}
+// melhor lucro em preços abaixo de p (para alertar sobre mudança de faixa)
+function bestBelow(pk, p, I){
+  let best=null; const lim=Math.min(Math.round(p*100)-1, 40000);
+  for (let c=1;c<=lim;c++){ const e=evaluate(pk,c/100,I); if(!best||e.lucro>best.lucro+1e-9) best=e; }
+  return best;
+}
+
+/* ===== regras exibidas ===== */
+function rulesHTML(){
+  if (plat==='shopee') return `<table class="rules">
+    <tr><td>Até R$ 79,99</td><td>20% + R$ 4,50</td></tr>
+    <tr><td>R$ 80 a R$ 99,99</td><td>14% + R$ 16</td></tr>
+    <tr><td>R$ 100 a R$ 199,99</td><td>14% + R$ 20</td></tr>
+    <tr><td>R$ 200 ou mais</td><td>14% + R$ 26</td></tr></table>
+    <p class="note">Tabela em vigor desde 01/10/2026. Já inclui a taxa de transação e o Programa de Frete Grátis, obrigatório desde março. Itens abaixo de R$ 9 pagam metade do preço de taxa fixa. CPF com mais de 450 pedidos em 90 dias paga +R$ 3 por item. Não há mais teto de R$ 100 na comissão.</p>`;
+  if (plat==='tiktok') return `<table class="rules">
+    <tr><td>Abaixo de R$ 50</td><td>10% + R$ 4 por item</td></tr>
+    <tr><td>R$ 50 ou mais</td><td>6% + R$ 6 por item</td></tr>
+    <tr><td>Programa de Taxas de Envio</td><td>+6% (máx. R$ 50)</td></tr></table>
+    <p class="note">Tabela em vigor desde 15/07/2026. A comissão incide sobre o preço depois dos descontos que você mesmo dá. A taxa de envio pode não ser devolvida se o pedido for reembolsado. Novos vendedores podem ter 60 dias sem comissão (economia máxima de R$ 17 mil). Hoje só é possível vender com CNPJ (MEI incluído).</p>`;
+  const w = ML_SHIP[+$('mlPeso').value];
+  return `<table class="rules">
+    <tr><td>Clássico</td><td>10% a 14% (por categoria)</td></tr>
+    <tr><td>Premium</td><td>15% a 19% (por categoria)</td></tr></table>
+    <p class="note" style="margin-bottom:6px"><b>Mercado Envios — custo de envio (${w[0]}, reputação verde):</b></p>
+    <table class="rules">${ML_PRICE_N.map((n,i)=>`<tr><td>${n}</td><td>${brl(w[1][i])}</td></tr>`).join('')}</table>
+    <p class="note">O custo de envio é cobrado em todas as vendas por Coleta, Agência e Full, mesmo quando o comprador paga o frete. Abaixo de R$ 19 ele é no máximo metade do preço. A partir de R$ 79 o frete grátis é obrigatório. No Flex/envio próprio, abaixo de R$ 79 há custo fixo de R$ 6,25 a R$ 6,75 (metade do preço abaixo de R$ 12,50). Algumas subcategorias têm 1 ponto a menos de tarifa (Clássico) ou 3 pontos a menos (Premium) entre R$ 150 e R$ 700. Confira no Simulador de Custos do ML.</p>`;
+}
+
+/* ===== render ===== */
+let lastPrice = null;
+function row(l,v,c=''){ return `<tr class="${c}"><td>${l}</td><td>${v}</td></tr>`; }
+
+function render(){
+  readCfg();
+  const I = base();
+  const p = mode==='price' ? solve(plat, I) : num('precoSim');
+  const al = [];
+  $('rules').innerHTML = rulesHTML();
+  $('rulesTitle').textContent = 'Regras usadas — ' + PLATS[plat].nome;
+
+  if (!p || p<=0){
+    lastPrice=null; $('heroVal').textContent='—'; $('heroMeta').textContent=''; $('breakdown').innerHTML='';
+    ['kRecebe','kLucro','kMargem'].forEach(k=>{$(k).textContent='—';$(k).className='v';});
+    al.push(`<div class="alert bad">Não existe preço que alcance esse lucro com esses custos: a soma de taxas, impostos, anúncios e margem passa de 100% do preço. Reduza a margem em % ou os percentuais.</div>`);
+  } else {
+    lastPrice = p;
+    const e = evaluate(plat, p, I);
+    $('heroLbl').textContent = (mode==='price' ? 'Preço para anunciar' : 'Preço testado') + ' no ' + PLATS[plat].nome;
+    $('heroVal').textContent = brl(p);
+    $('heroMeta').textContent = `Taxas da plataforma: ${brl(e.platTot)} (${pctf(e.platTot/p)} do preço) · faixa ${e.f.faixa}`;
+
+    let h = row('Preço de venda', brl(p));
+    e.f.items.filter(i=>i.plat).forEach(i => h += row(i.l, '− '+brl(i.v), 'neg'));
+    h += row('Você recebe da plataforma', brl(e.recebe), 'sub');
+    h += row('Custo do produto', '− '+brl(I.custo), 'neg');
+    h += row('Embalagem + etiqueta', '− '+brl(I.op), 'neg');
+    e.f.items.filter(i=>!i.plat).forEach(i => h += row(i.l, '− '+brl(i.v), 'neg'));
+    if (I.imp) h += row(`Imposto (${pctf(I.imp)})`, '− '+brl(e.imposto), 'neg');
+    if (I.ads) h += row(`Anúncios pagos (${pctf(I.ads)})`, '− '+brl(e.ads), 'neg');
+    if (I.outros) h += row('Outros custos', '− '+brl(I.outros), 'neg');
+    h += row('Lucro líquido', brl(e.lucro), 'tot');
+    $('breakdown').innerHTML = h;
+
+    $('kRecebe').textContent = brl(e.recebe); $('kRecebe').className='v';
+    $('kLucro').textContent = brl(e.lucro); $('kLucro').className='v '+(e.lucro>=0?'pos':'neg');
+    $('kMargem').textContent = pctf(e.margem); $('kMargem').className='v '+(e.lucro>=0?'pos':'neg');
+
+    if (mode==='sim'){
+      if (e.lucro < 0) al.push(`<div class="alert bad">Nesse preço você tem prejuízo de ${brl(-e.lucro)} por venda.</div>`);
+      const b = bestBelow(plat, p, I);
+      if (b && b.lucro > e.lucro + 0.01) al.push(`<div class="alert warn">Atenção à mudança de faixa: anunciando a <b>${brl(b.p)}</b> você lucraria <b>${brl(b.lucro)}</b>, mais do que a ${brl(p)}, porque as taxas sobem quando o preço muda de faixa.</div>`);
+      const min = solve(plat, {...I, lucro:0}, 'rs');
+      if (min) al.push(`<div class="alert good">Preço mínimo para não ter prejuízo: <b>${brl(min)}</b>.</div>`);
+    } else {
+      // explica saltos: se um preço um pouco menor dava quase a meta
+      const b = bestBelow(plat, p, I);
+      if (b && p - b.p > 1 && b.lucro > 0 && b.lucro >= target(b.p,I,lucroMode) - Math.max(5, 0.15*Math.abs(target(b.p,I,lucroMode))))
+        al.push(`<div class="alert warn">Perto do limite de faixa: a <b>${brl(b.p)}</b> o lucro seria <b>${brl(b.lucro)}</b>, um pouco abaixo da meta. Pode valer aceitar um lucro menor e ficar abaixo da mudança de faixa.</div>`);
+    }
+    if (plat==='shopee' && conta==='cpf' && p < 12) al.push(`<div class="alert warn">Para CPF com itens abaixo de R$ 12 a Shopee aplica uma tarifa regressiva sem fórmula pública. O valor é estimado.</div>`);
+    if (plat==='ml' && $('mlLog').value==='flex' && p >= 79) al.push(`<div class="alert warn">A partir de R$ 79 o frete grátis é obrigatório no ML. Coloque em "Quanto você paga na entrega" o seu custo real de envio.</div>`);
+  }
+  $('alerts').innerHTML = al.join('');
+  renderCmp(I);
+}
+
+function renderCmp(I){
+  const rows = Object.keys(PLATS).map(k => {
+    const p = mode==='price' ? solve(k, I) : num('precoSim');
+    return {k, p, e: p ? evaluate(k, p, I) : null};
+  });
+  let h;
+  if (mode==='price'){
+    $('cmpTitle').textContent = 'Preço necessário em cada plataforma para o mesmo lucro';
+    const valid = rows.filter(r=>r.p); const bestP = valid.length ? Math.min(...valid.map(r=>r.p)) : null;
+    h = `<tr><th>Plataforma</th><th>Preço de anúncio</th><th>Taxas</th><th>Lucro</th></tr>`;
+    rows.forEach(r => h += `<tr class="click ${r.k===plat?'cur':''}" data-k="${r.k}"><td>${PLATS[r.k].nome}${r.p===bestP?'<span class="best">mais barato</span>':''}</td>
+      <td>${r.p?brl(r.p):'—'}</td><td>${r.e?brl(r.e.platTot):'—'}</td><td>${r.e?brl(r.e.lucro):'—'}</td></tr>`);
+  } else {
+    $('cmpTitle').textContent = 'Lucro em cada plataforma vendendo a ' + brl(num('precoSim'));
+    const bestL = Math.max(...rows.filter(r=>r.e).map(r=>r.e.lucro));
+    h = `<tr><th>Plataforma</th><th>Taxas</th><th>Lucro</th><th>Margem</th></tr>`;
+    rows.forEach(r => h += `<tr class="click ${r.k===plat?'cur':''}" data-k="${r.k}"><td>${PLATS[r.k].nome}${r.e&&r.e.lucro===bestL?'<span class="best">maior lucro</span>':''}</td>
+      <td>${r.e?brl(r.e.platTot):'—'}</td><td style="color:var(${r.e&&r.e.lucro<0?'--bad':'--ink'})">${r.e?brl(r.e.lucro):'—'}</td><td>${r.e?pctf(r.e.margem):'—'}</td></tr>`);
+  }
+  $('cmp').innerHTML = h;
+  document.querySelectorAll('#cmp tr.click').forEach(tr => tr.onclick = () => setPlat(tr.dataset.k));
+}
+
+/* ===== eventos ===== */
+function setPlat(k){
+  plat = k; document.body.dataset.p = k;
+  document.querySelectorAll('#ptabs button').forEach(b => b.classList.toggle('on', b.dataset.p===k));
+  document.querySelectorAll('[data-only]').forEach(el => el.style.display = el.dataset.only===k ? '' : 'none');
+  render();
+}
+document.querySelectorAll('#ptabs button').forEach(b => b.onclick = () => setPlat(b.dataset.p));
+document.querySelectorAll('input,select').forEach(i => { i.addEventListener('input', render); i.addEventListener('change', render); });
+
+$('tabPrice').onclick = () => { mode='price'; $('tabPrice').classList.add('on'); $('tabSim').classList.remove('on'); $('boxLucro').style.display=''; $('boxSim').style.display='none'; render(); };
+$('tabSim').onclick = () => { mode='sim'; $('tabSim').classList.add('on'); $('tabPrice').classList.remove('on'); $('boxLucro').style.display='none'; $('boxSim').style.display=''; if (lastPrice) $('precoSim').value = lastPrice.toFixed(2).replace('.',','); render(); };
+
+document.querySelectorAll('#segLucro button').forEach(b => b.onclick = () => {
+  lucroMode = b.dataset.m;
+  document.querySelectorAll('#segLucro button').forEach(x=>x.classList.toggle('on', x===b));
+  $('lucroUnit').textContent = lucroMode==='rs' ? 'R$' : '%';
+  $('lucro').value = lucroMode==='rs' ? '10,00' : '20';
+  render();
+});
+document.querySelectorAll('#segConta button').forEach(b => b.onclick = () => {
+  conta = b.dataset.c;
+  document.querySelectorAll('#segConta button').forEach(x=>x.classList.toggle('on', x===b));
+  $('boxCpf').style.display = conta==='cpf' ? 'flex' : 'none';
+  render();
+});
+document.querySelectorAll('#segAnuncio button').forEach(b => b.onclick = () => {
+  anuncio = b.dataset.a;
+  document.querySelectorAll('#segAnuncio button').forEach(x=>x.classList.toggle('on', x===b));
+  $('mlTarifa').value = anuncio==='premium' ? '17' : '12';
+  $('tarifaHint').textContent = anuncio==='premium' ? '(Premium: 15% a 19%)' : '(Clássico: 10% a 14%)';
+  render();
+});
+$('mlLog').addEventListener('change', () => {
+  const me = $('mlLog').value==='me';
+  $('mlBoxME').style.display = me ? '' : 'none';
+  $('mlBoxFlex').style.display = me ? 'none' : '';
+});
+$('mlRep').addEventListener('change', () => { $('mlBoxManual').style.display = $('mlRep').value==='manual' ? '' : 'none'; });
+$('mlPeso').innerHTML = ML_SHIP.map((w,i)=>`<option value="${i}">${w[0]}</option>`).join('');
+
+$('btnCopy').onclick = async () => {
+  if (!lastPrice) return;
+  try { await navigator.clipboard.writeText(lastPrice.toFixed(2).replace('.',',')); $('btnCopy').textContent='Copiado!'; }
+  catch(e){ $('btnCopy').textContent='Copie manualmente'; }
+  setTimeout(()=>$('btnCopy').textContent='Copiar', 1500);
+};
+render();
+</script>
+</body>
+</html>
