@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
+  :root{ color-scheme:light dark;
     --bg:#f6f4f1; --card:#fff; --ink:#1d1b19; --muted:#6c665f; --line:#e6e1da;
     --accent:#e8542e; --accent-soft:#fdeee8;
     --good:#1f8a52; --good-soft:#e6f4ec; --bad:#c0352b; --bad-soft:#fbe9e7; --warn:#a36a00; --warn-soft:#fff4dc;
@@ -43,6 +43,7 @@
   .field span{padding:0 10px;color:var(--muted);font-size:14px}
   .field input,.field select{flex:1;border:0;outline:0;padding:10px 10px 10px 0;font:inherit;background:transparent;color:var(--ink);min-width:0}
   .field select{padding-left:10px}
+  .field select option{background:var(--card);color:var(--ink)}
   .field.pct input{padding-left:10px}
   .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;vertical-align:middle}
